@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>WebGL Starfield test</title>
+	<meta charset="utf-8">
+	<meta name="description" content="WebGL Stars">
+	<meta name="author" content="Luke Nickerson">
+	<link rel="stylesheet" href="stars.css" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body scroll="no">
+	<canvas id="canvas" width=640 height=480></canvas>
+	<canvas id="gal" width=640 height=480></canvas>
+	<script src="src/stars.js" type="module"></script>
+	<script type="module">
+		import stars from './src/stars.js';
+		(async () => {
+			await stars.init();
+			// stars.move(1);
+			let t = 0;
+			const loop = () => {
+				window.requestAnimationFrame((now) => {
+					const dt = (now - t) / 1000;
+					t = now;
+					// stars.move(0.01, 0.00002).inc(dt).draw(now);
+					stars.move(1, 0.1).inc(dt).draw(now);
+					// stars.inc(dt).draw(now);
+					loop();
+				});
+			};
+			loop();
+		})();
+	</script>
+	<script type="module">
+		import galaxy from './src/galaxy.js';
+		galaxy('#gal');
+	</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "stars-webgl",
+  "version": "0.1.0",
+  "description": "starfield using webGL shaders and vanilla js",
+  "type": "module",
+  "main": "./index.cjs",
+  "exports": {
+    "import": "./index.mjs",
+    "require": "./index.cjs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config webpack.config.cjs"
+  },
+  "keywords": [
+    "webGL"
+  ],
+  "author": "Luke Nickerson",
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  }
+}
