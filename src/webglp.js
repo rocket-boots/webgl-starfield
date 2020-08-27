@@ -1,30 +1,84 @@
+const SCREEN_TRIANGLE_VERTS = new Float32Array([
+	-1, -1, // first triangle
+	1, -1,
+	-1, 1,
+	-1, 1, // second triangle
+	1, -1,
+	1, 1,
+]),
+SCREEN_TRIANGLES_NUMBERS_PER_VERTEX = 2;
+
 class GLP {
 	constructor(gl, p) {
-		this.gl = gl;
-		this.program = p;
-		this.vars = {};
+		Object.assign(this, {
+			gl, // webgl rendering context object
+			p, // array of programs
+			i: 0, // current program
+			// variables - internal storage of attributes and uniforms
+			// in a per-program array
+			aV: p.map(()=>({})),
+			uV: p.map(()=>({})),
+		});
+		console.log(this);
 	}
+	use(i) {
+		this.i = i;
+		this.gl.useProgram(this.p[i]);
+		return this;
+	}
+	// An attribute is variable and can contain a float or a vector (vec2, vec3, vec4).
+	// Your program should not exceed 16 attributes to work on all devices.
 	attr(name, ...args) {
-		const a = this.vars[name] || this.gl.getAttribLocation(this.program, name);
+		const a = this.aV[this.i][name] || this.gl.getAttribLocation(this.p[this.i], name);
 		this.gl[`vertexAttrib${args.length}f`](a, ...args);
-		return this.vars[name] = a;
+		return this.aV[this.i][name] = a;
 	}
+	// A uniform is constant can contain an int, a float, a vector or a matrix (mat2, mat3, mat4).
+	// Your program should not exceed 128 vertex uniforms and 64 fragment uniforms.
 	unif(name, ...args) {
-		const u = this.vars[name] || this.gl.getUniformLocation(this.program, name);
+		const u = this.uV[this.i][name] || this.gl.getUniformLocation(this.p[this.i], name);
 		this.gl[`uniform${args.length}f`](u, ...args);
-		return this.vars[name] = u;
+		return this.uV[this.i][name] = u;
+	}
+	// Set Uniforms from an array
+	ua(...a) {
+		a.forEach(u => this.unif(...u));
 	}
 	buff(name, data, size, type = this.gl.FLOAT) {
-		return webgl.buffer(this.gl, data, this.program, name, size, type);
+		return webglp.buffer(this.gl, data, this.p[this.i], name, size, type);
 	}
 	clear() {
-		// this.gl.clearColor(0.0, 0.0, 0.0, 1.0); // Set the clear color (black)
+		this.gl.clearColor(0.0, 0.0, 0.0, 1.0); // Set the clear color (black)
+		// this.gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // Clear the canvas AND the depth buffer.
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+	}
+	draw({
+		uniforms = [],
+		i = this.i,
+		buffName = 'position',
+		verts = SCREEN_TRIANGLE_VERTS,
+		numbersPerVertex = SCREEN_TRIANGLES_NUMBERS_PER_VERTEX,
+		verticesToDraw,
+		type = this.gl.TRIANGLES,
+		clear = true,
+	}) {
+		const o = this;
+		o.use(i);
+		o.ua(...uniforms);
+		o.buff(buffName, verts, numbersPerVertex);
+		if (clear) { o.clear(); }
+		if (verticesToDraw === undefined) {
+			verticesToDraw = verts.length / numbersPerVertex;
+		}
+		o.gl.drawArrays(type, 0, verticesToDraw);
+		return o;
 	}
 }
 
-const webgl = {
+const webglp = {
 	GLP,
+	SCREEN_TRIANGLE_VERTS,
+	SCREEN_TRIANGLES_NUMBERS_PER_VERTEX,
 	getRenderingContext: (selector, antialias = false) => {
 		const canvas = document.querySelector(selector);
 		const gl = canvas.getContext('webgl', { antialias }); // Get the WebGL rendering context
@@ -44,6 +98,9 @@ const webgl = {
 		gl.shaderSource(shader, src);
 		gl.compileShader(shader);
 		return shader;
+	},
+	setViewport: (gl) => {
+		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 	},
 	// Based on https://xem.github.io/articles/webgl-guide.html
 	// TODO: Remove
@@ -99,17 +156,22 @@ const webgl = {
 		gl.enableVertexAttribArray(pos);
 	},
 	// Do it all - Create canvas rendering context, load shaders, compile, and return the context
-	init: async function init(selector, vUrl, fUrl) {
-		const gl = this.getRenderingContext(selector);
+	// First param can either be a selector or a GL object
+	init: async function init(a, urlsArr) {
+		const gl = (typeof a === 'string') ? this.getRenderingContext(a) : a;
 		// Do aliases?
 		// const aliases = {attachShader: 'aS'};
 		// for (const k in aliases) {
 		// 	gl[aliases[k]] = gl[k];
 		// }
-
-		const program = await this.loadShaders([vUrl, fUrl]).then((s) => this.compile(gl, s));
-		return new GLP(gl, program);
+		const promises = urlsArr.map(urls => (
+			this.loadShaders(urls).then((s) => this.compile(gl, s))
+		));
+		const programs = await Promise.all(promises);
+		// const program = await this.loadShaders(urlsArr[0]).then((s) => this.compile(gl, s));
+		// console.log(programs);
+		return new GLP(gl, programs);
 	}
 };
 
-export default webgl;
+export default webglp;

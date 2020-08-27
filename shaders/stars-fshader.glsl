@@ -41,7 +41,7 @@ uniform vec4 viewerPosition;
 // 	// }
 // }
 
-#define stardustDepths 1
+#define stardustDepths 2
 #define stardustDepthSpeed 0.00001
 #define stardustQuant 100. // Lower = more
 #define stardustColorMult 1.
@@ -71,7 +71,7 @@ vec4 getStardustColor(in vec2 fragCoord, in float depthLevel, in float spd) {
 	vec2 seed = p.xy * 2.0;	
 	seed = floor(seed * iResolution.x);
 	vec3 rnd = nrand3( seed );
-	vec4 starColor = vec4(pow(rnd.y, stardustQuant)) * vec4(1., .9, .9, 1.);
+	vec4 starColor = vec4(pow(rnd.y, stardustQuant)) * vec4(1., .95, .9, .1);
 	return starColor;
 }
 
@@ -143,8 +143,11 @@ void starNest( out vec4 fragColor, in vec2 fragCoord )
 
 void main() {
 	vec2 fragXY = gl_FragCoord.xy;
-	starNest(gl_FragColor, fragXY);
-	gl_FragColor = min(gl_FragColor, .15);
+	// starNest(gl_FragColor, fragXY);
+	// gl_FragColor = min(gl_FragColor, .15);
 	addStars(gl_FragColor, fragXY);
 	addStardust(gl_FragColor, fragXY);
+	if (gl_FragColor.r < .1 && gl_FragColor.g < .1 && gl_FragColor.b < .1) {
+		discard;
+	}
 }
