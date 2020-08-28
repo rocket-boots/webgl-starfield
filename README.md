@@ -1,4 +1,4 @@
-# webgl-starfield
+# Procedural Parallax Starfields in WebGL
 
 Try it out: https://rocket-boots.github.io/webgl-starfield/
 
@@ -6,9 +6,9 @@ Try it out: https://rocket-boots.github.io/webgl-starfield/
 
 ### Three fragment shaders
 
-* A 3D kaliset fractal from https://www.shadertoy.com/view/XlfGRj
-* A Art-of-Code starfield (refactored) from https://www.youtube.com/watch?v=rvDo9LvfoVE
-* A star/dust field inspired by https://www.shadertoy.com/view/MslGWN
+* 3D kaliset fractal from https://www.shadertoy.com/view/XlfGRj
+* Art-of-Code starfield (refactored) from https://www.youtube.com/watch?v=rvDo9LvfoVE
+* Pixel-sized star/dust field inspired by https://www.shadertoy.com/view/MslGWN
 
 ### JS
 
