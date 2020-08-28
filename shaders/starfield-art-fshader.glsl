@@ -3,7 +3,8 @@ precision mediump float;
 uniform vec2 iResolution;
 uniform vec2 iMouse;
 uniform float iTime;
-uniform vec4 viewerPosition;
+uniform vec3 viewerPosition;
+uniform float zoom; // #define ZOOM 1.
 
 #define SEED1 123.34
 #define SEED2 456.2
@@ -16,12 +17,13 @@ uniform vec4 viewerPosition;
 #define PI 3.1415
 #define TWO_PI 6.2831
 
-#define ZOOM 1.
+
+#define LIGHT_EFFECT 0.015
 #define HOT_COLOR_MULT 1.2
 #define COLOR_MULT 13.2 // higher -> more colorful
 #define NUM_LAYERS 5.
-#define FLARE_MULT .3 // how much dimmer are diagnol flares?
-#define FLARE_OPACITY .6
+#define DIAGNOL_FLARE_MULT .3 // how much dimmer are diagnol flares?
+#define FLARE_OPACITY .5
 #define VIEWER_MOVE_SCALE .000005
 #define SIZE_SCALE 1.
 #define FLICKER_TIMING 1.
@@ -41,10 +43,10 @@ float Rays(vec2 uv) {
 
 float Star(vec2 uv, float flare) {
 	float d = length(uv); // distance to center of "screen"
-	float m = .02/d;  // Light effect
+	float m = LIGHT_EFFECT/d;  // Light effect
 	m += Rays(uv) * flare; // Add cardinal rays
 	uv *= Rot(PI/4.); // Rotate 45 degrees
-	m += Rays(uv) * flare * FLARE_MULT; // Add diagnol rays (less flare)
+	m += Rays(uv) * flare * DIAGNOL_FLARE_MULT; // Add diagnol rays (less flare)
 	// Need to cut off the glow because the stars will be in boxes,
 	// only taking into consideration their direct neighbors' boxes,
 	// so the cutoff will be 1 d, and will start at 0.2 d
@@ -146,7 +148,7 @@ void main() {
 	vec2 fragCoord = gl_FragCoord.xy;
 	// The full screen coordinates
 	vec2 uv = (fragCoord-.5*iResolution.xy)/iResolution.y;
-	uv *= ZOOM; // zoom
+	uv *= zoom;
 	float t = iTime * .1;
 
 	// Rotate over time

@@ -3,7 +3,7 @@ precision mediump float;
 uniform vec2 iResolution;
 uniform vec2 iMouse;
 uniform float iTime;
-uniform vec4 viewerPosition;
+uniform vec3 viewerPosition;
 
 #define STARDUST_DEPTHS 4.
 #define STARDUST_DEPTH_SPEED 0.00001
