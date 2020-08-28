@@ -4,14 +4,17 @@ let x = 0., y = 0., z = 0.;
 let t = 0.;
 
 const SHADERS = [
-	['./shaders/vshader.glsl', './shaders/starnest-fshader.glsl'],
-	['./shaders/vshader.glsl', './shaders/stars-fshader.glsl']
+	// ['./shaders/vshader.glsl', './shaders/starnest-fshader.glsl'],
+	['./shaders/vshader.glsl', './shaders/starfield-art-fshader.glsl'],
+	['./shaders/vshader.glsl', './shaders/stars-fshader.glsl'],
 ];
 
 async function init() {
 	this.glp = await webglp.init('#canvas', SHADERS);
-	webglp.setViewport(this.glp.gl);
+	webglp.fullscreen(this.glp.gl);
 	// this.glp2 = await webglp.init(this.glp.gl, , true);
+	// const {gl} = this.glp;
+	// gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	this.draw();
 }
 
@@ -40,8 +43,13 @@ function draw() {
 
 	// gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-	glp.draw({ uniforms, i: 0 })
-		.draw({ uniforms, i: 1, clear: false });
+	// glp.p.forEach((p, i) => {
+	// 	glp.draw({ uniforms, i, clear: !i  })
+	// });
+	glp.drawAll(uniforms);
+	// glp.draw({ uniforms, i: 0 })
+	// 	.draw({ uniforms, i: 1, clear: false })
+	// 	.draw({ uniforms, i: 2, clear: false });
 	
 
 	// gl.enable(gl.CULL_FACE);

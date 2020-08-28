@@ -3,51 +3,15 @@ precision mediump float;
 uniform vec2 iResolution;
 uniform vec2 iMouse;
 uniform float iTime;
-
 uniform vec4 viewerPosition;
-// attribute float size;
 
-// varying vec4 v_color;
+#define STARDUST_DEPTHS 4.
+#define STARDUST_DEPTH_SPEED 0.00001
+#define STARFIELD_QUANT 120. // Lower = more
+#define HOT_COLOR_MULT 1.2
 
-// uniform vec4 color;
-
-
-#define iterations 12 // 17
-#define formuparam 0.53 // 0.53 magic number
-
-#define startVolume 0 // 0
-#define volSteps 8 // 20
-#define stepSize 0.1 // 0.1
-
-#define zoom   0.800
-#define tile   0.850
-#define speed  0.0000005 // 0.010
-
-#define brightness 0.0015 // 0.0015
-#define darkmatter 0.300 // 0.300
-#define distfading 0.730 // 0.730
-#define saturation 0.750 // 0.850
-
-
-// void main() {
-// 	// Set fragment color: vec4(r, g, b, alpha)
-// 	gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-
-// 	// float d = distance(gl_PointCoord, vec2(0.5, 0.5));
-// 	// if (d < .5) { gl_FragColor = v_color; }
-// 	// else {
-// 	// 	// gl_FragColor = vec4(1.0, 0.0, 0.0, 0.1);
-// 	// 	discard;
-// 	// }
-// }
-
-#define stardustDepths 2
-#define stardustDepthSpeed 0.00001
-#define stardustQuant 100. // Lower = more
-#define stardustColorMult 1.
-
-#define starDepths 3
-#define starDepthSpeed 0.000001
+#define STAR_DEPTHS 5.
+#define STAR_DEPTH_SPEED 0.000001
 
 // Simplicity Galaxy by CBS
 // https://www.shadertoy.com/view/MslGWN
@@ -58,96 +22,72 @@ vec3 nrand3(vec2 n) {
 	return c;
 }
 
-vec4 getStardustColor(in vec2 fragCoord, in float depthLevel, in float spd) {
-    vec2 uv = 2. * fragCoord.xy / iResolution.xy - 1.;
-	vec2 uvs = uv * iResolution.xy / max(iResolution.x, iResolution.y);
-	vec3 p = vec3(uvs / 4., 0) + vec3(1., -1.3, 0.);
+float Hash21(vec2 p, float s1, float s2, float s3) {
+	p = fract(p * vec2(s1, s2));
+	p += dot(p, p + s3);
+	return fract(p.x * p.y);	
+}
+
+vec3 starfieldRand(in vec2 uvs, in float depthLevel, in float spd) {
+	vec3 p = vec3(uvs / 4., 0) + vec3(1., -1.3, 0.); // ?
 	// p += .2 * vec3(sin(iTime / 16.), sin(iTime / 12.),  sin(iTime / 128.));
-
 	p += viewerPosition.xyz * (depthLevel * spd);
-	p += depthLevel; // Adds to randomness (???)
-	p.y += spd;
-
-	vec2 seed = p.xy * 2.0;	
+	vec2 seed = p.xy * 2.0 + depthLevel;	
 	seed = floor(seed * iResolution.x);
-	vec3 rnd = nrand3( seed );
-	vec4 starColor = vec4(pow(rnd.y, stardustQuant)) * vec4(1., .95, .9, .1);
+	return nrand3(seed);
+}
+
+vec3 HotColor(float size, float rand) {
+	float hotnessRand = fract(rand * 56787.23);
+	float colorRand = fract(rand * 12354.3);
+	float hotness = hotnessRand * .5 + size * .5;
+	
+	// Stars are colored by hotness
+	// 0 -> .2  ->  .4  ->  .6  -> .8 -> 1
+	//   Red  Orange  Yellow  White  Blue
+	vec3 color;
+	if (hotness < .6) { // Base of red, increase greenness with hotness to make orange and yellow
+		color = vec3(1., hotness/.6 , hotness*.9);
+	} else { // Base of white, decrease red and green with hotness to make blue
+		float rg = 1. - (hotness - .6)/.4;
+		color = vec3(rg,rg,1.);
+	}
+	// Make more white
+	color = clamp(color * HOT_COLOR_MULT, 0., 1.);
+	return color;
+}
+
+vec4 Starfield(in float randNum) {
+	// vec4 starColor = vec4(1., 1., 1., pow(rnd.y, STARFIELD_QUANT)); // * vec4(1., .95, .9, .1);
+	vec4 starColor = vec4(pow(randNum, STARFIELD_QUANT)); // * vec4(1., .95, .9, .1);
+	// if (starColor.a < 0.1) { starColor = vec4(0.); }
 	return starColor;
 }
 
-void addStardust( out vec4 fragColor, in vec2 fragCoord ) {
-	for (int s = 1; s <= stardustDepths; s++) {
-		fragColor += getStardustColor(fragCoord, float(s), stardustDepthSpeed);
+void addStardust( out vec4 color, in vec2 uvs ) {
+	for(float i=0.; i<1.; i +=1./STARDUST_DEPTHS) {
+		vec3 r = starfieldRand(uvs, i, STARDUST_DEPTH_SPEED);
+		color += Starfield(r.y);
 	}
 }
 
-void addStars( out vec4 fragColor, in vec2 fragCoord ) {
-	for (int s = 1; s <= starDepths; s++) {
-		fragColor += getStardustColor(fragCoord, float(s), starDepthSpeed);
+void addStars( out vec4 color, in vec2 uvs ) {
+	for(float i=0.; i<1.; i +=1./STAR_DEPTHS) {
+		vec3 r = starfieldRand(uvs, i, STAR_DEPTH_SPEED);
+		color += Starfield(r.y);
+		color *= vec4(HotColor(1., r.y), 1.);
 	}
 }
-
-// Star Nest by Pablo Roman Andrioli
-// This content is under the MIT License.
-// https://www.shadertoy.com/view/XlfGRj
-void starNest( out vec4 fragColor, in vec2 fragCoord )
-{
-	//get coords and direction
-	vec2 uv=fragCoord.xy/iResolution.xy-.5;
-	uv.y*=iResolution.y/iResolution.x;
-	vec3 dir=vec3(uv*zoom,1.);
-
-	//mouse rotation
-	float a1=.5+iMouse.x/iResolution.x*2.;
-	float a2=.8+iMouse.y/iResolution.y*2.;
-	mat2 rot1=mat2(cos(a1),sin(a1),-sin(a1),cos(a1));
-	mat2 rot2=mat2(cos(a2),sin(a2),-sin(a2),cos(a2));
-	dir.xz*=rot1;
-	dir.xy*=rot2;
-	vec3 from = vec3(1.,.5,0.5);
-	from += viewerPosition.xyz * speed;
-	from.xz*=rot1;
-	from.xy*=rot2;
-
-	// float bPower = 11. + sin(viewerPosition.x * 1000.) * 10.;
-	// vec3 huePower = vec3(1., 3., 2.);
-	
-	//volumetric rendering
-	float s = 0.1, fade = 1.;
-	vec3 v = vec3(0.);
-	for (int r = startVolume; r < volSteps; r++) {
-		vec3 p = from + s * dir * .5;
-		p = abs(vec3(tile) - mod(p,vec3(tile*2.))); // tiling fold
-		float pa, a = pa = 0.;
-		for (int i=0; i<iterations; i++) { 
-			p = abs(p)/dot(p,p)-formuparam; // the magic formula
-			float len = length(p);
-			a += abs(len - pa); // absolute sum of average change
-			pa = len;
-		}
-		float dm = max(0.,darkmatter-a*a*.001); //dark matter
-		a *= a*a; // add contrast
-		if (r>6) fade*=1.-dm; // dark matter, don't render near
-		// v+=vec3(dm,dm*.5,0.);
-		v += fade;
-		// v += vec3(pow(s, huePower.r), pow(s, huePower.g), pow(s, huePower.b)) * a*brightness*fade; // coloring based on distance
-		v+=vec3(s,s*s,s*s*s*s)*a*brightness*fade; // coloring based on distance
-		v = min(v, 100.);
-		fade *= distfading; // distance fading
-		s += stepSize;
-	}
-	v = mix(vec3(length(v)),v,saturation); //color adjust
-	fragColor = vec4(v*.01, 1.);
-}
-
 
 void main() {
-	vec2 fragXY = gl_FragCoord.xy;
-	// starNest(gl_FragColor, fragXY);
-	// gl_FragColor = min(gl_FragColor, .15);
-	addStars(gl_FragColor, fragXY);
-	addStardust(gl_FragColor, fragXY);
-	if (gl_FragColor.r < .1 && gl_FragColor.g < .1 && gl_FragColor.b < .1) {
+	vec2 fragCoord = gl_FragCoord.xy;
+    // vec2 uv = 2. * fragCoord.xy / iResolution.xy - 1.;
+	// vec2 uvs = uv * iResolution.xy / max(iResolution.x, iResolution.y);
+	vec2 uv = (fragCoord-.5*iResolution.xy)/iResolution.y;
+
+	// addStars(gl_FragColor, uv);
+	addStardust(gl_FragColor, uv);
+	if (gl_FragColor.a < .1 || (gl_FragColor.r < .1 && gl_FragColor.g < .1 && gl_FragColor.b < .1)) {
 		discard;
 	}
 }

@@ -3,14 +3,7 @@ precision mediump float;
 uniform vec2 iResolution;
 uniform vec2 iMouse;
 uniform float iTime;
-
 uniform vec4 viewerPosition;
-// attribute float size;
-
-// varying vec4 v_color;
-
-// uniform vec4 color;
-
 
 #define iterations 12 // 17
 #define formuparam 0.53 // 0.53 magic number
@@ -40,52 +33,6 @@ uniform vec4 viewerPosition;
 // 	// 	discard;
 // 	// }
 // }
-
-#define stardustDepths 2
-#define stardustDepthSpeed 0.00001
-#define stardustQuant 100. // Lower = more
-#define stardustColorMult 1.
-
-#define starDepths 3
-#define starDepthSpeed 0.000001
-
-// Simplicity Galaxy by CBS
-// https://www.shadertoy.com/view/MslGWN
-vec3 nrand3(vec2 n) {
-	vec3 a = fract( cos( n.x*8.3e-3 + n.y )*vec3(1.3e5, 4.7e5, 2.9e5) );
-	vec3 b = fract( sin( n.x*0.3e-3 + n.y )*vec3(8.1e5, 1.0e5, 0.1e5) );
-	vec3 c = mix(a, b, 0.5);
-	return c;
-}
-
-vec4 getStardustColor(in vec2 fragCoord, in float depthLevel, in float spd) {
-    vec2 uv = 2. * fragCoord.xy / iResolution.xy - 1.;
-	vec2 uvs = uv * iResolution.xy / max(iResolution.x, iResolution.y);
-	vec3 p = vec3(uvs / 4., 0) + vec3(1., -1.3, 0.);
-	// p += .2 * vec3(sin(iTime / 16.), sin(iTime / 12.),  sin(iTime / 128.));
-
-	p += viewerPosition.xyz * (depthLevel * spd);
-	p += depthLevel; // Adds to randomness (???)
-	p.y += spd;
-
-	vec2 seed = p.xy * 2.0;	
-	seed = floor(seed * iResolution.x);
-	vec3 rnd = nrand3( seed );
-	vec4 starColor = vec4(pow(rnd.y, stardustQuant)) * vec4(1., .9, .9, 1.);
-	return starColor;
-}
-
-void addStardust( out vec4 fragColor, in vec2 fragCoord ) {
-	for (int s = 1; s <= stardustDepths; s++) {
-		fragColor += getStardustColor(fragCoord, float(s), stardustDepthSpeed);
-	}
-}
-
-void addStars( out vec4 fragColor, in vec2 fragCoord ) {
-	for (int s = 1; s <= starDepths; s++) {
-		fragColor += getStardustColor(fragCoord, float(s), starDepthSpeed);
-	}
-}
 
 // Star Nest by Pablo Roman Andrioli
 // This content is under the MIT License.
@@ -144,7 +91,5 @@ void starNest( out vec4 fragColor, in vec2 fragCoord )
 void main() {
 	vec2 fragXY = gl_FragCoord.xy;
 	starNest(gl_FragColor, fragXY);
-	// gl_FragColor = min(gl_FragColor, .15);
-	// addStars(gl_FragColor, fragXY);
-	// addStardust(gl_FragColor, fragXY);
+	gl_FragColor = min(gl_FragColor, .15);
 }

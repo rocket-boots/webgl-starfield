@@ -73,6 +73,9 @@ class GLP {
 		o.gl.drawArrays(type, 0, verticesToDraw);
 		return o;
 	}
+	drawAll(uniforms) { // only works with changing uniforms right now
+		this.p.forEach((p, i) => this.draw({ uniforms, i, clear: !i }));
+	}
 }
 
 const webglp = {
@@ -90,14 +93,19 @@ const webglp = {
 	loadText: (url) => {
 		return fetch(url).then(response => response.text());
 	},
-	loadShaders: function (urls) {
-		return Promise.all(urls.map(u => this.loadText(u)));
+	loadShaders: (urls) => {
+		return Promise.all(urls.map(u => webglp.loadText(u)));
 	},
 	compileShader: (gl, type, src) => {
 		const shader = gl.createShader(type);
 		gl.shaderSource(shader, src);
 		gl.compileShader(shader);
 		return shader;
+	},
+	fullscreen: (gl, win = window) => {
+		gl.canvas.width = win.innerWidth;
+		gl.canvas.height = win.innerHeight;
+		webglp.setViewport(gl);
 	},
 	setViewport: (gl) => {
 		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -122,14 +130,14 @@ const webglp = {
 
 	// 	return program;
 	// },
-	compile: function (gl, shaders) { // shaders = array of text
+	compile: (gl, shaders) => { // shaders = array of text
 		// Create the WebGL program
 		const program = gl.createProgram();
 
 		const S = [gl.VERTEX_SHADER, gl.FRAGMENT_SHADER];
 		const L = ['vertex', 'fragment'];
 		shaders.map((t, i) => {
-			const s = this.compileShader(gl, S[i], t);
+			const s = webglp.compileShader(gl, S[i], t);
 			gl.attachShader(program, s);
 			console.log(L[i] + ' shader:', gl.getShaderInfoLog(s) || 'OK');
 		});
@@ -157,18 +165,18 @@ const webglp = {
 	},
 	// Do it all - Create canvas rendering context, load shaders, compile, and return the context
 	// First param can either be a selector or a GL object
-	init: async function init(a, urlsArr) {
-		const gl = (typeof a === 'string') ? this.getRenderingContext(a) : a;
+	init: async (a, urlsArr) => {
+		const gl = (typeof a === 'string') ? webglp.getRenderingContext(a) : a;
 		// Do aliases?
 		// const aliases = {attachShader: 'aS'};
 		// for (const k in aliases) {
 		// 	gl[aliases[k]] = gl[k];
 		// }
 		const promises = urlsArr.map(urls => (
-			this.loadShaders(urls).then((s) => this.compile(gl, s))
+			webglp.loadShaders(urls).then((s) => webglp.compile(gl, s))
 		));
 		const programs = await Promise.all(promises);
-		// const program = await this.loadShaders(urlsArr[0]).then((s) => this.compile(gl, s));
+		// const program = await webglp.loadShaders(urlsArr[0]).then((s) => webglp.compile(gl, s));
 		// console.log(programs);
 		return new GLP(gl, programs);
 	}

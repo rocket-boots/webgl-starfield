@@ -18,4 +18,4 @@ import galaxy from './galaxy.js';
 	loop();
 })();
 
-galaxy('#gal');
+// galaxy('#gal');
