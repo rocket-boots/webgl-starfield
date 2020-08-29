@@ -1,26 +1,23 @@
 const path = require('path');
 const package = require('./package.json');
 const dirPath = path.resolve(__dirname);
-const filename = `index.cjs`;
+const filename = `dist/stars-window.js`;
 
-console.log(
-	'\n------------------------------------------------------------------------------\n',
-	`Building ${package.name} into ${dirPath}/${filename}`,
-	'\n------------------------------------------------------------------------------\n'
-);
+console.log(`---- Building ${package.name} into ${dirPath}/${filename} ----`);
 
 const ex = {
 	mode: 'production',
-	target: 'node', // vs. 'web'
+	target: 'web', // 'node' vs. 'web'
 	entry: package.exports.import,
 	output: {
 		filename,
 		path: dirPath,
+		library: 'stars',
 		libraryExport: 'default',
-		libraryTarget: 'commonjs'
+		libraryTarget: 'window'
 	},
 	devtool: 'inline-source-map',
-	// optimization: { minimize: true }, // TODO: remove when not testing
+	optimization: { minimize: true }, // TODO: remove when not testing
 	// externals: [nodeExternals()], // for node
 };
 module.exports = ex;

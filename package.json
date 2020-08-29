@@ -3,11 +3,7 @@
   "version": "0.1.0",
   "description": "starfield using webGL shaders and vanilla js",
   "type": "module",
-  "main": "./index.cjs",
-  "exports": {
-    "import": "./index.mjs",
-    "require": "./index.cjs"
-  },
+  "main": "./index.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --config webpack.config.cjs"
@@ -20,5 +16,8 @@
   "devDependencies": {
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"
+  },
+  "dependencies": {
+    "webglp": "git+https://github.com/rocket-boots/webglp.git#master"
   }
 }

@@ -21,7 +21,7 @@ uniform float zoom; // #define ZOOM 1.
 #define LIGHT_EFFECT 0.015
 #define HOT_COLOR_MULT 1.2
 #define COLOR_MULT 13.2 // higher -> more colorful
-#define NUM_LAYERS 5.
+#define NUM_LAYERS 3.
 #define DIAGNOL_FLARE_MULT .3 // how much dimmer are diagnol flares?
 #define FLARE_OPACITY .5
 #define VIEWER_MOVE_SCALE .000005
@@ -107,13 +107,14 @@ vec3 HotColor(float size, float rand) {
 	return color;
 }
 
-vec3 StarLayer(vec2 uv) {
+vec3 StarLayer(vec2 uv, vec2 viewerMovement) {
+	vec2 movedUv = uv + viewerMovement;
 	vec3 col = vec3(0);
 
 	// Breaks the screen into fractional boxes
-	vec2 boxFract = fract(uv); // keep fractional component to break into multiple squares
+	vec2 boxFract = fract(movedUv); // keep fractional component to break into multiple squares
 	vec2 gv = boxFract - .5; // box origin
-	vec2 id = floor(uv); // keep integer component for a unique ID to identify each box
+	vec2 id = floor(movedUv); // keep integer component for a unique ID to identify each box
 
 	// Loop over neighboring boxes (3x3)
 	for(int y=-1;y<=1;y++) {
@@ -137,10 +138,11 @@ vec3 StarLayer(vec2 uv) {
 			// star *= sin(iTime * FLICKER_TIMING + boxRand * TWO_PI) * .2 + .8;
 
 			col += star * size * SIZE_SCALE * color;
+			// col += vec3(fract(id), .5);
 		}
 	}
 	// Put outline on boxes
-	// if (gv.x > .48 || gv.y > .48) col.r = 1.;
+	// if (gv.x > .48 || gv.y > .48) { col.b = id.x; col.g = 0.5; }
 	return col;
 }
 
@@ -166,7 +168,7 @@ void main() {
 		float zScale = mix(20., .2, depth);
 		float shift = i * SHIFT_OFFSET; // helps to make it so stars aren't aligned
 		float fade = depth * smoothstep(1., .95, depth); // fade in and fade out with depth movement
-		col += StarLayer(uv * zScale + shift + viewerMovement) * fade;
+		col += StarLayer(uv * zScale + shift, viewerMovement) * fade;
 	}
 
 	float brightness = (col.x + col.y + col.z) / 3.;

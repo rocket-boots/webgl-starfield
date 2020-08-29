@@ -4,14 +4,15 @@ uniform vec2 iResolution;
 uniform vec2 iMouse;
 uniform float iTime;
 uniform vec3 viewerPosition;
+uniform float zoom;
 
-#define STARDUST_DEPTHS 4.
+#define STARDUST_DEPTHS 10.
 #define STARDUST_DEPTH_SPEED 0.00001
-#define STARFIELD_QUANT 120. // Lower = more
+#define STARFIELD_QUANT 130. // Lower = more
 #define HOT_COLOR_MULT 1.2
 
 #define STAR_DEPTHS 5.
-#define STAR_DEPTH_SPEED 0.000001
+#define STAR_DEPTH_SPEED 0.0000001
 
 // Simplicity Galaxy by CBS
 // https://www.shadertoy.com/view/MslGWN
@@ -64,19 +65,25 @@ vec4 Starfield(in float randNum) {
 	return starColor;
 }
 
-void addStardust( out vec4 color, in vec2 uvs ) {
+vec4 Stardust(in vec2 uvs) {
+	vec4 c = vec4(0);
 	for(float i=0.; i<1.; i +=1./STARDUST_DEPTHS) {
 		vec3 r = starfieldRand(uvs, i, STARDUST_DEPTH_SPEED);
-		color += Starfield(r.y);
+		c += Starfield(r.y);
 	}
+	// Fade out stardust when zoomed out
+	c.a *= smoothstep(3., 1., zoom);
+	return c;
 }
 
-void addStars( out vec4 color, in vec2 uvs ) {
+vec4 Stars(in vec2 uvs) {
+	vec4 c = vec4(0);
 	for(float i=0.; i<1.; i +=1./STAR_DEPTHS) {
 		vec3 r = starfieldRand(uvs, i, STAR_DEPTH_SPEED);
-		color += Starfield(r.y);
-		color *= vec4(HotColor(1., r.y), 1.);
+		c += Starfield(r.y);
+		c *= vec4(HotColor(1., r.y), 1.);
 	}
+	return c;
 }
 
 void main() {
@@ -85,8 +92,17 @@ void main() {
 	// vec2 uvs = uv * iResolution.xy / max(iResolution.x, iResolution.y);
 	vec2 uv = (fragCoord-.5*iResolution.xy)/iResolution.y;
 
-	// addStars(gl_FragColor, uv);
-	addStardust(gl_FragColor, uv);
+	gl_FragColor += Stars(uv);
+	gl_FragColor += Stardust(uv);
+
+	// Streaks?
+	// for(float s=0.; s<1.; s+=1./2.) {
+	// 	uv.x += 1.;
+	// 	vec4 dust = Stardust(uv);
+	// 	dust.r = 1.0;
+	// 	gl_FragColor += dust;
+	// }
+
 	if (gl_FragColor.a < .1 || (gl_FragColor.r < .1 && gl_FragColor.g < .1 && gl_FragColor.b < .1)) {
 		discard;
 	}

@@ -1,6 +1,6 @@
 # Procedural Parallax Starfields in WebGL
 
-Try it out now: https://rocket-boots.github.io/webgl-starfield/
+Try it out now: https://rocket-boots.github.io/webgl-starfield/example/
 
 ## Goals
 
@@ -13,26 +13,34 @@ Try it out now: https://rocket-boots.github.io/webgl-starfield/
 
 ### Three fragment shaders
 
-* 3D kaliset fractal from https://www.shadertoy.com/view/XlfGRj
+* 3D kaliset fractal from https://www.shadertoy.com/view/XlfGRj (not active in the example)
 * Art-of-Code starfield (refactored) from https://www.youtube.com/watch?v=rvDo9LvfoVE
 * Pixel-sized star/dust field inspired by https://www.shadertoy.com/view/MslGWN
 
 ### JS
 
-* `starfield-test.js` - kicks off the example
-* `stars.js` - functionality that bolts together the webglp code with the shaders
-* `webglp.js` - a small library for simplifying webGL setup and rendering
+* `example/starfield-test.js` - kicks off the example
+* `src/stars.js` - functionality that bolts together the webglp code with the shaders
+* [`webglp.js` - the only dependency](https://github.com/rocket-boots/webglp) - a small library for simplifying webGL setup and rendering
 
-## Further Development
+## Development
 
+* `npm run build` will build a `stars-window.js` in the `dist` folder.
+
+### Further Development
+
+There is plenty of room for improvement to meet the goals:
+
+- [x] Pull webglp code into its own repo
 - [ ] Zoomable star dust
-- [ ] Add more randomness (?) to avoid patterns in AoC stafield when zoomed out
-- [ ] Pull webglp code into its own repo
+- [ ] Avoid patterns in AoC stafield when zoomed out
 - [ ] 3 dimensional movement
+- [ ] Star streaks/blurs when moving fast
 - [ ] Develop a fix for star flickers in kaliset or art-of-code shader
 - [ ] Blend kaliset and art-of-code shaders
 - [ ] Add nebula clouds (e.g., https://wwwtyro.net/2016/10/22/2D-space-scene-procgen.html)
-- [ ] Add galaxy star clusters (and remove galaxy.js)
-- [ ] Allo stars to be defined by data, to allow incorporation into things like [galGen](https://github.com/Lukenickerson/galGen) and http://stars.chromeexperiments.com/
+- [ ] Add galaxy star clusters (and remove galaxy.js?)
+- [ ] Consider using 3d vertices instead of just fragment shaders?
+- [ ] Allow stars to be defined by data, to allow incorporation into things like [galGen](https://github.com/Lukenickerson/galGen) and http://stars.chromeexperiments.com/
 - [ ] Minify
 - [ ] Documentation

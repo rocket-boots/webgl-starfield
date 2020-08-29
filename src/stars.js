@@ -1,4 +1,4 @@
-import webglp from './webglp.js';
+import webglp from 'webglp';
 
 const MIN_ZOOM = 0.1;
 
@@ -8,14 +8,16 @@ let _zoom = 1.;
 
 const SHADERS = [
 	// ['./shaders/vshader.glsl', './shaders/starnest-fshader.glsl'],
-	['./shaders/vshader.glsl', './shaders/starfield-art-fshader.glsl'],
-	['./shaders/vshader.glsl', './shaders/stars-fshader.glsl'],
+	['../shaders/vshader.glsl', '../shaders/starfield-art-fshader.glsl'],
+	['../shaders/vshader.glsl', '../shaders/stars-fshader.glsl'],
 ];
 
 async function init() {
 	this.glp = await webglp.init('#canvas', SHADERS);
 	webglp.fullscreen(this.glp.gl);
-	// const {gl} = this.glp;
+	
+	const {gl} = this.glp;
+	console.log('Resolution:', gl.canvas.width, gl.canvas.height);
 	// gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	// gl.enable(gl.CULL_FACE);
 	// gl.enable(gl.DEPTH_TEST);

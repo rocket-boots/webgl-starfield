@@ -1,7 +1,9 @@
-import stars from './stars.js';
+// import stars from '../src/stars.js';
 // import galaxy from './galaxy.js';
+import stars from '../dist/stars.js'
+// const { stars } = window;
 
-const ZOOM_MULTIPLIER = 0.0015;
+const ZOOM_MULTIPLIER = 0.00015;
 
 (async () => {
 	await stars.init();
@@ -9,9 +11,11 @@ const ZOOM_MULTIPLIER = 0.0015;
 	let t = 0;
 	const loop = () => {
 		window.requestAnimationFrame((now) => {
+			const dx = 100; // 100;
+			const dy = 0; // -.1
 			const dt = (now - t) / 1000;
 			t = now;
-			stars.move(100, 0.1).inc(dt).draw(now);
+			stars.move(dx, dy).inc(dt).draw(now);
 			loop();
 		});
 	};
